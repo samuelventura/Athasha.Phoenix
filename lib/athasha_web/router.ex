@@ -23,6 +23,8 @@ defmodule AthashaWeb.Router do
 
     get "/auth/signup", AuthController, :signup_get
     post "/auth/signup", AuthController, :signup_post
+    get "/auth/confirm", AuthController, :confirm_email
+    get "/auth/reset", AuthController, :reset_password
 
     get "/auth/signin", AuthController, :signin_get
     post "/auth/signin", AuthController, :signin_post

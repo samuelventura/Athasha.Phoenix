@@ -7,7 +7,6 @@ defmodule Athasha.Repo.Migrations.CreateUsers do
       add :email, :string
       add :password, :string
       add :origin, :string
-      add :token, :string
       add :confirmed, :boolean, default: false
 
       timestamps()
@@ -20,6 +19,25 @@ defmodule Athasha.Repo.Migrations.CreateUsers do
       add :name, :string
       add :email, :string
       add :origin, :string
+
+      timestamps()
+    end
+
+    create table(:emails) do
+      add :email, :string
+      add :title, :string
+      add :body, :string
+      add :sent, :boolean, default: false
+
+      timestamps()
+    end
+
+    create table(:tokens) do
+      add :token, :string
+      add :origin, :string
+      add :payload, :string
+      add :done, :boolean, default: false
+      add :user_id, references(:users)
 
       timestamps()
     end

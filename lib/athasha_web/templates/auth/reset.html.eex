@@ -1,0 +1,13 @@
+<h1>Sign in</h1>
+
+<%= form_for @changeset, @action, fn f -> %>
+
+  <%= label f, :email %>
+  <%= email_input f, :email, required: "true" %>
+  <%= error_tag f, :email %>
+
+  <div>
+    <%= submit "Reset" %>
+  </div>
+
+<% end %>

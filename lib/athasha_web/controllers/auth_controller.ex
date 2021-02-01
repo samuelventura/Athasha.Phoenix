@@ -3,6 +3,9 @@ defmodule AthashaWeb.AuthController do
 
   alias Athasha.Accounts
   alias Athasha.Accounts.User
+  alias Athasha.Accounts.Token
+  alias Athasha.Accounts.Email
+  alias Athasha.Accounts.Session
 
   def signup_get(conn, _params) do
     changeset = Accounts.change_user(%User{})
@@ -15,11 +18,31 @@ defmodule AthashaWeb.AuthController do
       user_params
       |> Map.put("origin", origin(conn))
       |> Map.put("password", encrypt(user_params))
-      |> Map.put("token", Ecto.UUID.generate())
 
     case Accounts.create_user(user_params) do
-      {:ok, _user} ->
-        # signups should no redirect to referer because referer
+      {:ok, user} ->
+        token =
+          %Token{}
+          |> Map.put(:user_id, user.id)
+          |> Map.put(:token, Ecto.UUID.generate())
+          |> Map.put(:origin, user.origin)
+
+        token |> Accounts.create_token!()
+
+        base_url = Routes.auth_url(conn, :confirm_email)
+        confirm_url = "#{base_url}?id=#{token.user_id}&token=#{token.token}"
+        IO.inspect(confirm_url)
+
+        %Email{}
+        |> Map.put(:email, user.email)
+        |> Map.put(:title, "Athasha - Confirm your email to complete sign up")
+        |> Map.put(:body, """
+        <b>Follow link below to complete sign up</b>
+        <p><a href="#{confirm_url}">#{base_url}</a></p>
+        """)
+        |> Accounts.create_email!()
+
+        # should not redirect to referer because referer
         # most likely will redirect back to signin
         conn
         |> put_flash(
@@ -44,15 +67,15 @@ defmodule AthashaWeb.AuthController do
   end
 
   def signin_post(conn, %{"user" => user_params}) do
-    user_params =
-      user_params
-      |> Map.put("origin", origin(conn))
-      |> Map.put("password", encrypt(user_params))
+    user_params = user_params |> Map.put("password", encrypt(user_params))
 
     case Accounts.find_user_by_credentials(user_params) do
       user = %User{} ->
-        user_params = Map.put(user_params, "name", user.name)
-        Accounts.create_session!(user_params)
+        %Session{}
+        |> Map.put(:name, user.name)
+        |> Map.put(:email, user.name)
+        |> Map.put(:origin, origin(conn))
+        |> Accounts.create_session!()
 
         conn
         |> put_flash(:info, "Successful sign in")

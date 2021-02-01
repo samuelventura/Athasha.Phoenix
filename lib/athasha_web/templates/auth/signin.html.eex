@@ -3,7 +3,7 @@
 <%= form_for @changeset, @action, fn f -> %>
 
   <p>
-  <%= link "Create new account", to: Routes.auth_path(@conn, :signup_get) %>
+  <%= link "Reset password", to: Routes.auth_path(@conn, :reset_password) %>
   </p>
 
   <%= label f, :email %>

@@ -7,7 +7,6 @@ defmodule Athasha.Accounts.User do
     field :name, :string
     field :password, :string
     field :origin, :string
-    field :token, :string
     field :confirmed, :boolean
 
     timestamps()
@@ -16,8 +15,8 @@ defmodule Athasha.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :name, :password, :origin, :token, :confirmed])
-    |> validate_required([:email, :name, :password, :origin, :token])
+    |> cast(attrs, [:email, :name, :password, :origin, :confirmed])
+    |> validate_required([:email, :name, :password, :origin])
     |> unique_constraint(:name)
     |> unique_constraint(:email)
   end

@@ -7,6 +7,8 @@ defmodule Athasha.Accounts do
   alias Athasha.Repo
 
   alias Athasha.Accounts.User
+  alias Athasha.Accounts.Token
+  alias Athasha.Accounts.Email
   alias Athasha.Accounts.Session
 
   @doc false
@@ -41,6 +43,18 @@ defmodule Athasha.Accounts do
     User.changeset(user, attrs)
   end
 
+  def create_token!(%Token{} = token) do
+    token
+    |> Token.changeset(%{})
+    |> Repo.insert!()
+  end
+
+  def create_email!(%Email{} = email) do
+    email
+    |> Email.changeset(%{})
+    |> Repo.insert!()
+  end
+
   def find_user_by_credentials(%{"email" => email, "password" => password}) do
     User
     |> where([u], u.email == ^email)
@@ -49,9 +63,9 @@ defmodule Athasha.Accounts do
     |> Repo.one()
   end
 
-  def create_session!(attrs \\ %{}) do
-    %Session{}
-    |> Session.changeset(attrs)
+  def create_session!(%Session{} = session) do
+    session
+    |> Session.changeset(%{})
     |> Repo.insert!()
   end
 end
