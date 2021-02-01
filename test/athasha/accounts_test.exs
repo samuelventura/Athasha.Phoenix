@@ -6,11 +6,11 @@ defmodule Athasha.AccountsTest do
   describe "users" do
     alias Athasha.Accounts.User
 
-    @valid_attrs %{email: "some email", name: "some name", password: "some password"}
-    @update_attrs %{email: "some updated email", name: "some updated name", password: "some updated password"}
-    @invalid_attrs %{email: nil, name: nil, password: nil}
-
-    def user_fixture(attrs \\ %{}) do
+    @valid_attrs %{email: "some email", name: "some name", password: "some password", origin: "some origin"}
+    @update_attrs %{email: "some updated email", name: "some updated name", password: "some updated password", origin: "some updated origin"}
+    @invalid_attrs %{email: nil, name: nil, password: nil, origin: nil}
+  
+    def user_fixture(attrs \\ %{confirmed: false}) do
       {:ok, user} =
         attrs
         |> Enum.into(@valid_attrs)
@@ -34,6 +34,7 @@ defmodule Athasha.AccountsTest do
       assert user.email == "some email"
       assert user.name == "some name"
       assert user.password == "some password"
+      assert user.origin == "some origin"
     end
 
     test "create_user/1 with invalid data returns error changeset" do
@@ -46,6 +47,7 @@ defmodule Athasha.AccountsTest do
       assert user.email == "some updated email"
       assert user.name == "some updated name"
       assert user.password == "some updated password"
+      assert user.origin == "some updated origin"
     end
 
     test "update_user/2 with invalid data returns error changeset" do
