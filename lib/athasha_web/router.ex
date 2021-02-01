@@ -18,6 +18,12 @@ defmodule AthashaWeb.Router do
     pipe_through :browser
 
     live "/", PageLive, :index
+
+    get "/signup", AuthController, :signup_get
+    post "/signup", AuthController, :signup_post
+
+    get "/signin", AuthController, :signin_get
+    post "/signin", AuthController, :signin_post
   end
 
   # Other scopes may use custom stacks.

@@ -1,0 +1,21 @@
+<h1>Sign in</h1>
+
+<%= form_for @changeset, @action, fn f -> %>
+
+  <p>
+  <%= link "Create new account", to: Routes.auth_path(@conn, :signup_get) %>
+  </p>
+
+  <%= label f, :email %>
+  <%= email_input f, :email, required: "true" %>
+  <%= error_tag f, :email %>
+
+  <%= label f, :password %>
+  <%= password_input f, :password, required: "true" %>
+  <%= error_tag f, :password %>
+
+  <div>
+    <%= submit "Sign in" %>
+  </div>
+
+<% end %>
