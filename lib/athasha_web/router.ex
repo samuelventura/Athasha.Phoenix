@@ -19,11 +19,13 @@ defmodule AthashaWeb.Router do
 
     live "/", PageLive, :index
 
-    get "/signup", AuthController, :signup_get
-    post "/signup", AuthController, :signup_post
+    resources "/users", UserController
 
-    get "/signin", AuthController, :signin_get
-    post "/signin", AuthController, :signin_post
+    get "/auth/signup", AuthController, :signup_get
+    post "/auth/signup", AuthController, :signup_post
+
+    get "/auth/signin", AuthController, :signin_get
+    post "/auth/signin", AuthController, :signin_post
   end
 
   # Other scopes may use custom stacks.
