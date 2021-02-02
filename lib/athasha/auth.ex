@@ -17,20 +17,14 @@ defmodule Athasha.Auth do
     |> Repo.insert()
   end
 
-  def update_user(%User{} = user, attrs) do
+  def update_user!(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
-    |> Repo.update()
+    |> Repo.update!()
   end
 
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
-  end
-
-  def create_token!(%Token{} = token) do
-    token
-    |> Token.changeset(%{})
-    |> Repo.insert!()
   end
 
   def get_user_by_id(id) do
@@ -45,10 +39,8 @@ defmodule Athasha.Auth do
     Repo.get_by(Token, token: token, user_id: user_id, done: false)
   end
 
-  def update_token(%Token{} = token, attrs) do
-    token
-    |> Token.changeset(attrs)
-    |> Repo.update()
+  def get_confirmed_user_by_credentials(email, password) do
+    Repo.get_by(User, email: email, password: password, confirmed: true)
   end
 
   def create_email!(%Email{} = email) do
@@ -57,12 +49,16 @@ defmodule Athasha.Auth do
     |> Repo.insert!()
   end
 
-  def get_user_by_credentials(email, password) do
-    User
-    |> where([u], u.email == ^email)
-    |> where([u], u.password == ^password)
-    |> where([u], u.confirmed)
-    |> Repo.one()
+  def create_token!(%Token{} = token) do
+    token
+    |> Token.changeset(%{})
+    |> Repo.insert!()
+  end
+
+  def update_token!(%Token{} = token, attrs) do
+    token
+    |> Token.changeset(attrs)
+    |> Repo.update!()
   end
 
   def create_session!(%Session{} = session) do

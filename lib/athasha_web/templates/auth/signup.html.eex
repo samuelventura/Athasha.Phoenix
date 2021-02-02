@@ -3,15 +3,24 @@
 <%= form_for @changeset, @action, fn f -> %>
 
   <%= label f, :name %>
-  <%= text_input f, :name, required: "true" %>
+  <%= text_input f, :name, 
+    title: "Your public user name", 
+    placeholder: "Your public user name", 
+    required: "true" %>
   <%= error_tag f, :name %>
 
   <%= label f, :email %>
-  <%= email_input f, :email, required: "true" %>
+  <%= email_input f, :email, 
+    title: "Your private email", 
+    placeholder: "Your private email", 
+    required: "true" %>
   <%= error_tag f, :email %>
 
   <%= label f, :password %>
-  <%= password_input f, :password, required: "true" %>
+  <%= password_input f, :password, 
+    title: "Your desired password", 
+    placeholder: "Your desired password", 
+    required: "true" %>
   <%= error_tag f, :password %>
 
   <div>

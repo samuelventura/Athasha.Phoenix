@@ -12,3 +12,5 @@
 - Encrypt password in DB
 - Test entry points with invalid abusive data
 - Avoid resend post notice
+- Implement https://en.wikipedia.org/wiki/Post/Redirect/Get in forms
+

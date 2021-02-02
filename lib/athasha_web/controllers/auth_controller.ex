@@ -28,8 +28,7 @@ defmodule AthashaWeb.AuthController do
           |> Map.put(:user_id, user.id)
           |> Map.put(:token, Ecto.UUID.generate())
           |> Map.put(:origin, user.origin)
-
-        token |> Auth.create_token!()
+          |> Auth.create_token!()
 
         base_url = Routes.auth_url(conn, :signup_apply)
         confirm_url = "#{base_url}?id=#{token.user_id}&token=#{token.token}"
@@ -46,20 +45,18 @@ defmodule AthashaWeb.AuthController do
         # should not redirect to referer because referer
         # most likely will redirect back to signin
         conn
-        |> put_flash(
-          :info,
-          """
-            Account created successfully.
-            Check your inbox to confirm your email before signing in.
-          """
-        )
+        |> put_flash(:info, """
+        Account created successfully.
+        Check your inbox to confirm your email before signing in.
+        <p><a href="#{confirm_url}">Confirm your email to complete sign up</a></p>
+        """)
         |> redirect(to: Routes.auth_path(conn, :signin_get))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         action = Routes.auth_path(conn, :signup_post)
 
         conn
-        |> put_flash(:error, "Check data validation errors")
+        |> put_flash(:error, "Check data validation errors.")
         |> render("signup.html", changeset: changeset, action: action)
     end
   end
@@ -70,16 +67,16 @@ defmodule AthashaWeb.AuthController do
 
     case [user, token] do
       [%User{}, %Token{}] ->
-        Auth.update_user(user, %{confirmed: true})
-        Auth.update_token(token, %{done: true})
+        Auth.update_user!(user, %{confirmed: true})
+        Auth.update_token!(token, %{done: true})
 
         conn
-        |> put_flash(:info, "Your email has been confirmed")
+        |> put_flash(:info, "Your email has been confirmed.")
         |> redirect(to: Routes.auth_path(conn, :signin_get))
 
       _ ->
         conn
-        |> put_flash(:error, "Your token has expired")
+        |> put_flash(:error, "Your token has expired.")
         |> redirect(to: Routes.auth_path(conn, :signin_get))
     end
   end
@@ -93,7 +90,7 @@ defmodule AthashaWeb.AuthController do
   def signin_post(conn, %{"user" => user_params}) do
     %{"email" => email, "password" => password} = user_params
 
-    case Auth.get_user_by_credentials(email, encrypt(password)) do
+    case Auth.get_confirmed_user_by_credentials(email, encrypt(password)) do
       user = %User{} ->
         %Session{}
         |> Map.put(:name, user.name)
@@ -102,7 +99,7 @@ defmodule AthashaWeb.AuthController do
         |> Auth.create_session!()
 
         conn
-        |> put_flash(:info, "Successful sign in")
+        |> put_flash(:info, "Successful sign in.")
         |> redirect(to: referer(conn))
 
       _ ->
@@ -110,7 +107,7 @@ defmodule AthashaWeb.AuthController do
         action = Routes.auth_path(conn, :signin_post)
 
         conn
-        |> put_flash(:error, "Invalid credentials")
+        |> put_flash(:error, "Invalid credentials.")
         |> render("signin.html", changeset: changeset, action: action)
     end
   end
@@ -132,8 +129,7 @@ defmodule AthashaWeb.AuthController do
           |> Map.put(:token, Ecto.UUID.generate())
           |> Map.put(:origin, origin(conn))
           |> Map.put(:payload, encrypt(password))
-
-        token |> Auth.create_token!()
+          |> Auth.create_token!()
 
         base_url = Routes.auth_url(conn, :reset_apply)
         confirm_url = "#{base_url}?id=#{token.user_id}&token=#{token.token}"
@@ -148,13 +144,11 @@ defmodule AthashaWeb.AuthController do
         |> Auth.create_email!()
 
         conn
-        |> put_flash(
-          :info,
-          """
-            Reset link created successfuly.
-            Check your inbox to confirm your reset before signing in.
-          """
-        )
+        |> put_flash(:info, """
+        Reset link created successfuly.
+        Check your inbox to confirm your reset before signing in.
+        <p><a href="#{confirm_url}">Confirm your password reset request</a></p>
+        """)
         |> redirect(to: Routes.auth_path(conn, :signin_get))
 
       _ ->
@@ -162,7 +156,7 @@ defmodule AthashaWeb.AuthController do
         action = Routes.auth_path(conn, :signin_post)
 
         conn
-        |> put_flash(:error, "Invalid credentials")
+        |> put_flash(:error, "Invalid credentials.")
         |> render("reset.html", changeset: changeset, action: action)
     end
   end
@@ -173,16 +167,16 @@ defmodule AthashaWeb.AuthController do
 
     case [user, token] do
       [%User{}, %Token{}] ->
-        Auth.update_user(user, %{confirmed: true, password: token.payload})
-        Auth.update_token(token, %{done: true})
+        Auth.update_user!(user, %{confirmed: true, password: token.payload})
+        Auth.update_token!(token, %{done: true})
 
         conn
-        |> put_flash(:info, "Your password has been reset")
+        |> put_flash(:info, "Your password has been reset.")
         |> redirect(to: Routes.auth_path(conn, :signin_get))
 
       _ ->
         conn
-        |> put_flash(:error, "Your token has expired")
+        |> put_flash(:error, "Your token has expired.")
         |> redirect(to: Routes.auth_path(conn, :signin_get))
     end
   end

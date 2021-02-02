@@ -7,11 +7,17 @@
   </p>
 
   <%= label f, :email %>
-  <%= email_input f, :email, required: "true" %>
+  <%= email_input f, :email, 
+    title: "Your registered email", 
+    placeholder: "Your registered email", 
+    required: "true" %>
   <%= error_tag f, :email %>
 
   <%= label f, :password %>
-  <%= password_input f, :password, required: "true" %>
+  <%= password_input f, :password, 
+    title: "Your current password", 
+    placeholder: "Your current password", 
+    required: "true" %>
   <%= error_tag f, :password %>
 
   <div>
