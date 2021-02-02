@@ -1,14 +1,14 @@
 defmodule AthashaWeb.UserControllerTest do
   use AthashaWeb.ConnCase
 
-  alias Athasha.Accounts
+  alias Athasha.Auth
 
   @create_attrs %{email: "some email", name: "some name", password: "some password", origin: "some origin"}
   @update_attrs %{email: "some updated email", name: "some updated name", password: "some updated password", origin: "some updated origin"}
   @invalid_attrs %{email: nil, name: nil, password: nil, origin: nil}
 
   def fixture(:user) do
-    {:ok, user} = Accounts.create_user(@create_attrs)
+    {:ok, user} = Auth.create_user(@create_attrs)
     user
   end
 

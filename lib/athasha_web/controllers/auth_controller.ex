@@ -1,14 +1,14 @@
 defmodule AthashaWeb.AuthController do
   use AthashaWeb, :controller
 
-  alias Athasha.Accounts
-  alias Athasha.Accounts.User
-  alias Athasha.Accounts.Token
-  alias Athasha.Accounts.Email
-  alias Athasha.Accounts.Session
+  alias Athasha.Auth
+  alias Athasha.Auth.User
+  alias Athasha.Auth.Token
+  alias Athasha.Auth.Email
+  alias Athasha.Auth.Session
 
   def signup_get(conn, _params) do
-    changeset = Accounts.change_user(%User{})
+    changeset = Auth.change_user(%User{})
     action = Routes.auth_path(conn, :signup_post)
     render(conn, "signup.html", changeset: changeset, action: action)
   end
@@ -19,7 +19,7 @@ defmodule AthashaWeb.AuthController do
       |> Map.put("origin", origin(conn))
       |> Map.put("password", encrypt(user_params))
 
-    case Accounts.create_user(user_params) do
+    case Auth.create_user(user_params) do
       {:ok, user} ->
         token =
           %Token{}
@@ -27,11 +27,10 @@ defmodule AthashaWeb.AuthController do
           |> Map.put(:token, Ecto.UUID.generate())
           |> Map.put(:origin, user.origin)
 
-        token |> Accounts.create_token!()
+        token |> Auth.create_token!()
 
         base_url = Routes.auth_url(conn, :confirm_email)
         confirm_url = "#{base_url}?id=#{token.user_id}&token=#{token.token}"
-        IO.inspect(confirm_url)
 
         %Email{}
         |> Map.put(:email, user.email)
@@ -40,7 +39,7 @@ defmodule AthashaWeb.AuthController do
         <b>Follow link below to complete sign up</b>
         <p><a href="#{confirm_url}">#{base_url}</a></p>
         """)
-        |> Accounts.create_email!()
+        |> Auth.create_email!()
 
         # should not redirect to referer because referer
         # most likely will redirect back to signin
@@ -61,7 +60,7 @@ defmodule AthashaWeb.AuthController do
   end
 
   def signin_get(conn, _params) do
-    changeset = Accounts.change_user(%User{})
+    changeset = Auth.change_user(%User{})
     action = Routes.auth_path(conn, :signin_post)
     render(conn, "signin.html", changeset: changeset, action: action)
   end
@@ -69,20 +68,20 @@ defmodule AthashaWeb.AuthController do
   def signin_post(conn, %{"user" => user_params}) do
     user_params = user_params |> Map.put("password", encrypt(user_params))
 
-    case Accounts.find_user_by_credentials(user_params) do
+    case Auth.find_user_by_credentials(user_params) do
       user = %User{} ->
         %Session{}
         |> Map.put(:name, user.name)
         |> Map.put(:email, user.name)
         |> Map.put(:origin, origin(conn))
-        |> Accounts.create_session!()
+        |> Auth.create_session!()
 
         conn
         |> put_flash(:info, "Successful sign in")
         |> redirect(to: referer(conn))
 
       _ ->
-        changeset = Accounts.change_user(%User{}, user_params)
+        changeset = Auth.change_user(%User{}, user_params)
         action = Routes.auth_path(conn, :signin_post)
 
         conn

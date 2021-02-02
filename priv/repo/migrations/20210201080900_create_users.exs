@@ -1,4 +1,4 @@
-defmodule Athasha.Repo.Migrations.CreateUsers do
+defmodule Athasha.Repo.Migrations.AuthSchema do
   use Ecto.Migration
 
   def change do

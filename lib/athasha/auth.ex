@@ -1,15 +1,15 @@
-defmodule Athasha.Accounts do
+defmodule Athasha.Auth do
   @moduledoc """
-  The Accounts context.
+  The Auth context.
   """
 
   import Ecto.Query, warn: false
   alias Athasha.Repo
 
-  alias Athasha.Accounts.User
-  alias Athasha.Accounts.Token
-  alias Athasha.Accounts.Email
-  alias Athasha.Accounts.Session
+  alias Athasha.Auth.User
+  alias Athasha.Auth.Token
+  alias Athasha.Auth.Email
+  alias Athasha.Auth.Session
 
   @doc false
   def list_users do

@@ -49,8 +49,8 @@ mix phx.server
 #vscode plugin
 https://github.com/elixir-lsp/vscode-elixir-ls
 
-#generate Accounts context
-mix phx.gen.html Accounts User users email:string:unique name:string:unique password:string
+#generate Auth context
+mix phx.gen.html Auth User users email:string:unique name:string:unique password:string
 mix ecto.drop; mix ecto.create
 mix ecto.rollback; mix ecto.migrate
 $ psql athasha_dev
@@ -61,4 +61,7 @@ mix test
 mix test test/athasha_web/controllers/
 mix test test/athasha_web/controllers/user_controller_test.exs
 mix test test/athasha_web/controllers/user_controller_test.exs:<line_number>
+
+MIX_ENV=test mix ecto.drop; mix ecto.create
+
 ```

@@ -1,9 +1,9 @@
-defmodule Athasha.Accounts.Token do
+defmodule Athasha.Auth.Token do
   use Ecto.Schema
   import Ecto.Changeset
 
   schema "tokens" do
-    belongs_to :user, Athasha.Accounts.User
+    belongs_to :user, Athasha.Auth.User
     field :token, :string
     field :origin, :string
     field :payload, :string

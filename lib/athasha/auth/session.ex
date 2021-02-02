@@ -1,4 +1,4 @@
-defmodule Athasha.Accounts.Session do
+defmodule Athasha.Auth.Session do
   use Ecto.Schema
   import Ecto.Changeset
 
