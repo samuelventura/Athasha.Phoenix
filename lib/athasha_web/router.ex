@@ -23,11 +23,12 @@ defmodule AthashaWeb.Router do
 
     get "/auth/signup", AuthController, :signup_get
     post "/auth/signup", AuthController, :signup_post
-    get "/auth/confirm", AuthController, :confirm_email
-    get "/auth/reset", AuthController, :reset_password
-
+    get "/auth/email", AuthController, :signup_apply
     get "/auth/signin", AuthController, :signin_get
     post "/auth/signin", AuthController, :signin_post
+    get "/auth/reset", AuthController, :reset_get
+    post "/auth/reset", AuthController, :reset_post
+    get "/auth/password", AuthController, :reset_apply
   end
 
   # Other scopes may use custom stacks.

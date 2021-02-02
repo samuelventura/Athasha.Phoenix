@@ -49,13 +49,32 @@ defmodule Athasha.Auth do
     |> Repo.insert!()
   end
 
+  def get_user_by_id(id) do
+    Repo.get_by(User, id: id)
+  end
+
+  def get_user_by_email(email) do
+    Repo.get_by(User, email: email)
+  end
+
+  def get_valid_token(token, user_id) do
+    Repo.get_by(Token, token: token, user_id: user_id, done: false)
+  end
+
+  @doc false
+  def update_token(%Token{} = token, attrs) do
+    token
+    |> Token.changeset(attrs)
+    |> Repo.update()
+  end
+
   def create_email!(%Email{} = email) do
     email
     |> Email.changeset(%{})
     |> Repo.insert!()
   end
 
-  def find_user_by_credentials(%{"email" => email, "password" => password}) do
+  def get_user_by_credentials(email, password) do
     User
     |> where([u], u.email == ^email)
     |> where([u], u.password == ^password)

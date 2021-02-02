@@ -41,5 +41,7 @@ defmodule Athasha.Repo.Migrations.AuthSchema do
 
       timestamps()
     end
+
+    create unique_index(:tokens, [:token])
   end
 end

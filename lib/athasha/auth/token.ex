@@ -17,5 +17,6 @@ defmodule Athasha.Auth.Token do
     email
     |> cast(attrs, [:user_id, :token, :origin, :payload, :done])
     |> validate_required([:user_id, :token, :origin])
+    |> unique_constraint(:token)
   end
 end

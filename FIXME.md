@@ -10,3 +10,5 @@
 - Password field losses its data intermitently on form validation failure
 - Add recaptcha to signin
 - Encrypt password in DB
+- Test entry points with invalid abusive data
+- Avoid resend post notice

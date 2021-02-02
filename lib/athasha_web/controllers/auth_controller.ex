@@ -14,10 +14,12 @@ defmodule AthashaWeb.AuthController do
   end
 
   def signup_post(conn, %{"user" => user_params}) do
+    %{"password" => password} = user_params
+
     user_params =
       user_params
       |> Map.put("origin", origin(conn))
-      |> Map.put("password", encrypt(user_params))
+      |> Map.put("password", encrypt(password))
 
     case Auth.create_user(user_params) do
       {:ok, user} ->
@@ -29,7 +31,7 @@ defmodule AthashaWeb.AuthController do
 
         token |> Auth.create_token!()
 
-        base_url = Routes.auth_url(conn, :confirm_email)
+        base_url = Routes.auth_url(conn, :signup_apply)
         confirm_url = "#{base_url}?id=#{token.user_id}&token=#{token.token}"
 
         %Email{}
@@ -37,7 +39,7 @@ defmodule AthashaWeb.AuthController do
         |> Map.put(:title, "Athasha - Confirm your email to complete sign up")
         |> Map.put(:body, """
         <b>Follow link below to complete sign up</b>
-        <p><a href="#{confirm_url}">#{base_url}</a></p>
+        <p><a href="#{confirm_url}">Confirm your email to complete sign up</a></p>
         """)
         |> Auth.create_email!()
 
@@ -55,7 +57,30 @@ defmodule AthashaWeb.AuthController do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         action = Routes.auth_path(conn, :signup_post)
-        render(conn, "signup.html", changeset: changeset, action: action)
+
+        conn
+        |> put_flash(:error, "Check data validation errors")
+        |> render("signup.html", changeset: changeset, action: action)
+    end
+  end
+
+  def signup_apply(conn, %{"id" => user_id, "token" => token}) do
+    user = Auth.get_user_by_id(user_id)
+    token = Auth.get_valid_token(token, user_id)
+
+    case [user, token] do
+      [%User{}, %Token{}] ->
+        Auth.update_user(user, %{confirmed: true})
+        Auth.update_token(token, %{done: true})
+
+        conn
+        |> put_flash(:info, "Your email has been confirmed")
+        |> redirect(to: Routes.auth_path(conn, :signin_get))
+
+      _ ->
+        conn
+        |> put_flash(:error, "Your token has expired")
+        |> redirect(to: Routes.auth_path(conn, :signin_get))
     end
   end
 
@@ -66,13 +91,13 @@ defmodule AthashaWeb.AuthController do
   end
 
   def signin_post(conn, %{"user" => user_params}) do
-    user_params = user_params |> Map.put("password", encrypt(user_params))
+    %{"email" => email, "password" => password} = user_params
 
-    case Auth.find_user_by_credentials(user_params) do
+    case Auth.get_user_by_credentials(email, encrypt(password)) do
       user = %User{} ->
         %Session{}
         |> Map.put(:name, user.name)
-        |> Map.put(:email, user.name)
+        |> Map.put(:email, user.email)
         |> Map.put(:origin, origin(conn))
         |> Auth.create_session!()
 
@@ -87,6 +112,78 @@ defmodule AthashaWeb.AuthController do
         conn
         |> put_flash(:error, "Invalid credentials")
         |> render("signin.html", changeset: changeset, action: action)
+    end
+  end
+
+  def reset_get(conn, _params) do
+    changeset = Auth.change_user(%User{})
+    action = Routes.auth_path(conn, :reset_post)
+    render(conn, "reset.html", changeset: changeset, action: action)
+  end
+
+  def reset_post(conn, %{"user" => user_params}) do
+    %{"email" => email, "password" => password} = user_params
+
+    case Auth.get_user_by_email(email) do
+      user = %User{} ->
+        token =
+          %Token{}
+          |> Map.put(:user_id, user.id)
+          |> Map.put(:token, Ecto.UUID.generate())
+          |> Map.put(:origin, origin(conn))
+          |> Map.put(:payload, encrypt(password))
+
+        token |> Auth.create_token!()
+
+        base_url = Routes.auth_url(conn, :reset_apply)
+        confirm_url = "#{base_url}?id=#{token.user_id}&token=#{token.token}"
+
+        %Email{}
+        |> Map.put(:email, user.email)
+        |> Map.put(:title, "Athasha - Confirm your password reset request")
+        |> Map.put(:body, """
+        <b>Follow link below to complete password reset</b>
+        <p><a href="#{confirm_url}">Confirm your password reset request</a></p>
+        """)
+        |> Auth.create_email!()
+
+        conn
+        |> put_flash(
+          :info,
+          """
+            Reset link created successfuly.
+            Check your inbox to confirm your reset before signing in.
+          """
+        )
+        |> redirect(to: Routes.auth_path(conn, :signin_get))
+
+      _ ->
+        changeset = Auth.change_user(%User{}, user_params)
+        action = Routes.auth_path(conn, :signin_post)
+
+        conn
+        |> put_flash(:error, "Invalid credentials")
+        |> render("reset.html", changeset: changeset, action: action)
+    end
+  end
+
+  def reset_apply(conn, %{"id" => user_id, "token" => token}) do
+    user = Auth.get_user_by_id(user_id)
+    token = Auth.get_valid_token(token, user_id)
+
+    case [user, token] do
+      [%User{}, %Token{}] ->
+        Auth.update_user(user, %{confirmed: true, password: token.payload})
+        Auth.update_token(token, %{done: true})
+
+        conn
+        |> put_flash(:info, "Your password has been reset")
+        |> redirect(to: Routes.auth_path(conn, :signin_get))
+
+      _ ->
+        conn
+        |> put_flash(:error, "Your token has expired")
+        |> redirect(to: Routes.auth_path(conn, :signin_get))
     end
   end
 
@@ -124,7 +221,7 @@ defmodule AthashaWeb.AuthController do
     end
   end
 
-  defp encrypt(%{"password" => password}) do
+  defp encrypt(password) do
     case String.trim(password) do
       "" -> ""
       _ -> :crypto.hash(:sha256, password) |> Base.encode16()
