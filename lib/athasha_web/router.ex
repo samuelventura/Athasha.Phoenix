@@ -19,8 +19,6 @@ defmodule AthashaWeb.Router do
 
     live "/", PageLive, :index
 
-    resources "/users", UserController
-
     get "/auth/signup", AuthController, :signup_get
     post "/auth/signup", AuthController, :signup_post
     get "/auth/email", AuthController, :signup_apply

@@ -11,34 +11,18 @@ defmodule Athasha.Auth do
   alias Athasha.Auth.Email
   alias Athasha.Auth.Session
 
-  @doc false
-  def list_users do
-    Repo.all(User)
-  end
-
-  @doc false
-  def get_user!(id), do: Repo.get!(User, id)
-
-  @doc false
   def create_user(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc false
   def update_user(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
     |> Repo.update()
   end
 
-  @doc false
-  def delete_user(%User{} = user) do
-    Repo.delete(user)
-  end
-
-  @doc false
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end
@@ -61,7 +45,6 @@ defmodule Athasha.Auth do
     Repo.get_by(Token, token: token, user_id: user_id, done: false)
   end
 
-  @doc false
   def update_token(%Token{} = token, attrs) do
     token
     |> Token.changeset(attrs)
