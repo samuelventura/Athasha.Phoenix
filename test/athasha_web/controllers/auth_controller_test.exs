@@ -45,7 +45,7 @@ defmodule AthashaWeb.AuthControllerTest do
       assert email.title == "Athasha - Confirm your email to complete sign up"
       assert email.sent == false
       assert email.body =~ Routes.auth_url(conn, :signup_apply)
-      assert email.body =~ "id=#{token.user_id}&token=#{token.token}"
+      assert email.body =~ "?id=#{token.user_id}&token=#{token.token}"
     end
 
     test "signup email gets confirmed", %{conn: conn} do
@@ -108,12 +108,22 @@ defmodule AthashaWeb.AuthControllerTest do
 
       conn = post(conn, Routes.auth_path(conn, :signin_post), user: user_params)
       assert redirected_to(conn) == Routes.page_path(conn, :index)
-      assert get_flash(conn, :info) =~ "Successful sign in."
+      assert get_flash(conn, :info) == "Successful sign in."
 
       [session] = Repo.all(Session)
       assert session.email == "some@guy.com"
       assert session.name == "Some Guy"
       assert session.origin == "127.0.0.1"
+      assert get_session(conn, :session_id) == session.id
+    end
+
+    test "signout get deletes session", %{conn: conn} do
+      conn = init_test_session(conn, %{session_id: 1})
+      assert get_session(conn, :session_id) == 1
+      conn = get(conn, Routes.auth_path(conn, :signout_get))
+      assert redirected_to(conn) == Routes.page_path(conn, :index)
+      assert get_session(conn, :session_id) == nil
+      assert get_flash(conn, :info) == "Successful sign out."
     end
 
     test "reset form renders", %{conn: conn} do
@@ -153,7 +163,7 @@ defmodule AthashaWeb.AuthControllerTest do
       assert email.title == "Athasha - Confirm your password reset request"
       assert email.sent == false
       assert email.body =~ Routes.auth_url(conn, :reset_apply)
-      assert email.body =~ "id=#{token.user_id}&token=#{token.token}"
+      assert email.body =~ "?id=#{token.user_id}&token=#{token.token}"
     end
 
     test "password gets reset", %{conn: conn} do
@@ -202,7 +212,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: " ", name: "Some Guy", password: "Secret"}
       conn = post(oconn, Routes.auth_path(oconn, :signup_post), user: user_params)
       assert html_response(conn, 200) =~ "Check data validation errors."
-      assert get_flash(conn, :error) =~ "Check data validation errors."
+      assert get_flash(conn, :error) == "Check data validation errors."
       assert Repo.all(User) == []
       assert Repo.all(Token) == []
       assert Repo.all(Email) == []
@@ -210,7 +220,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: "some@guy.com", name: " ", password: "Secret"}
       conn = post(oconn, Routes.auth_path(oconn, :signup_post), user: user_params)
       assert html_response(conn, 200) =~ "Check data validation errors."
-      assert get_flash(conn, :error) =~ "Check data validation errors."
+      assert get_flash(conn, :error) == "Check data validation errors."
       assert Repo.all(User) == []
       assert Repo.all(Token) == []
       assert Repo.all(Email) == []
@@ -218,7 +228,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: "some@guy.com", name: "Some Guy", password: " "}
       conn = post(oconn, Routes.auth_path(oconn, :signup_post), user: user_params)
       assert html_response(conn, 200) =~ "Check data validation errors."
-      assert get_flash(conn, :error) =~ "Check data validation errors."
+      assert get_flash(conn, :error) == "Check data validation errors."
       assert Repo.all(User) == []
       assert Repo.all(Token) == []
       assert Repo.all(Email) == []
@@ -237,7 +247,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: "some@guy.com", name: "Some Guy2", password: "Secret"}
       conn = post(oconn, Routes.auth_path(oconn, :signup_post), user: user_params)
       assert html_response(conn, 200) =~ "Check data validation errors."
-      assert get_flash(conn, :error) =~ "Check data validation errors."
+      assert get_flash(conn, :error) == "Check data validation errors."
       assert Repo.all(User) == [user]
       assert Repo.all(Token) == []
       assert Repo.all(Email) == []
@@ -245,7 +255,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: "some2@guy.com", name: "Some Guy", password: "Secret"}
       conn = post(oconn, Routes.auth_path(oconn, :signup_post), user: user_params)
       assert html_response(conn, 200) =~ "Check data validation errors."
-      assert get_flash(conn, :error) =~ "Check data validation errors."
+      assert get_flash(conn, :error) == "Check data validation errors."
       assert Repo.all(User) == [user]
       assert Repo.all(Token) == []
       assert Repo.all(Email) == []
@@ -257,7 +267,7 @@ defmodule AthashaWeb.AuthControllerTest do
       token_params = [id: "0", token: "SomeToken"]
       conn = get(oconn, Routes.auth_path(oconn, :signup_apply), token_params)
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
-      assert get_flash(conn, :error) =~ "Your token has expired."
+      assert get_flash(conn, :error) == "Your token has expired."
 
       user = %User{
         email: "some@guy.com",
@@ -282,13 +292,13 @@ defmodule AthashaWeb.AuthControllerTest do
       token_params = [id: "0", token: "SomeToken"]
       conn = get(oconn, Routes.auth_path(oconn, :signup_apply), token_params)
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
-      assert get_flash(conn, :error) =~ "Your token has expired."
+      assert get_flash(conn, :error) == "Your token has expired."
 
       # Token mismatch
       token_params = [id: token.user_id, token: "OtherToken"]
       conn = get(oconn, Routes.auth_path(oconn, :signup_apply), token_params)
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
-      assert get_flash(conn, :error) =~ "Your token has expired."
+      assert get_flash(conn, :error) == "Your token has expired."
 
       token = Auth.update_token!(token, %{done: true})
 
@@ -296,7 +306,7 @@ defmodule AthashaWeb.AuthControllerTest do
       token_params = [id: token.user_id, token: "SomeToken"]
       conn = get(oconn, Routes.auth_path(oconn, :signup_apply), token_params)
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
-      assert get_flash(conn, :error) =~ "Your token has expired."
+      assert get_flash(conn, :error) == "Your token has expired."
     end
 
     test "signin post fails with invalid data", %{conn: oconn} do
@@ -305,7 +315,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: "some@guy.com", password: "Secret"}
       conn = post(oconn, Routes.auth_path(oconn, :signin_post), user: user_params)
       assert html_response(conn, 200) =~ "Invalid credentials."
-      assert get_flash(conn, :error) =~ "Invalid credentials."
+      assert get_flash(conn, :error) == "Invalid credentials."
       assert Repo.all(Session) == []
 
       user = %User{
@@ -322,7 +332,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: "some@guy.com", password: "Secret"}
       conn = post(oconn, Routes.auth_path(oconn, :signin_post), user: user_params)
       assert html_response(conn, 200) =~ "Invalid credentials."
-      assert get_flash(conn, :error) =~ "Invalid credentials."
+      assert get_flash(conn, :error) == "Invalid credentials."
       assert Repo.all(Session) == []
 
       Auth.update_user!(user, %{confirmed: true})
@@ -331,7 +341,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: "some@guy.com", password: "OtherSecret"}
       conn = post(oconn, Routes.auth_path(oconn, :signin_post), user: user_params)
       assert html_response(conn, 200) =~ "Invalid credentials."
-      assert get_flash(conn, :error) =~ "Invalid credentials."
+      assert get_flash(conn, :error) == "Invalid credentials."
       assert Repo.all(Session) == []
     end
 
@@ -340,7 +350,7 @@ defmodule AthashaWeb.AuthControllerTest do
       user_params = %{email: "some@guy.com", password: "NewSecret"}
       conn = post(oconn, Routes.auth_path(oconn, :reset_post), user: user_params)
       assert html_response(conn, 200) =~ "Invalid credentials."
-      assert get_flash(conn, :error) =~ "Invalid credentials."
+      assert get_flash(conn, :error) == "Invalid credentials."
       assert Repo.all(Session) == []
       # FIXME no password validation occurs here
     end
@@ -351,7 +361,7 @@ defmodule AthashaWeb.AuthControllerTest do
       token_params = [id: "0", token: "SomeToken"]
       conn = get(oconn, Routes.auth_path(oconn, :reset_apply), token_params)
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
-      assert get_flash(conn, :error) =~ "Your token has expired."
+      assert get_flash(conn, :error) == "Your token has expired."
 
       user = %User{
         email: "some@guy.com",
@@ -376,13 +386,13 @@ defmodule AthashaWeb.AuthControllerTest do
       token_params = [id: "0", token: "SomeToken"]
       conn = get(oconn, Routes.auth_path(oconn, :reset_apply), token_params)
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
-      assert get_flash(conn, :error) =~ "Your token has expired."
+      assert get_flash(conn, :error) == "Your token has expired."
 
       # Token mismatch
       token_params = [id: token.user_id, token: "OtherToken"]
       conn = get(oconn, Routes.auth_path(oconn, :reset_apply), token_params)
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
-      assert get_flash(conn, :error) =~ "Your token has expired."
+      assert get_flash(conn, :error) == "Your token has expired."
 
       token = Auth.update_token!(token, %{done: true})
 
@@ -390,7 +400,7 @@ defmodule AthashaWeb.AuthControllerTest do
       token_params = [id: token.user_id, token: "SomeToken"]
       conn = get(oconn, Routes.auth_path(oconn, :reset_apply), token_params)
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
-      assert get_flash(conn, :error) =~ "Your token has expired."
+      assert get_flash(conn, :error) == "Your token has expired."
     end
   end
 

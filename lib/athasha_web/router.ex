@@ -27,6 +27,7 @@ defmodule AthashaWeb.Router do
     get "/auth/reset", AuthController, :reset_get
     post "/auth/reset", AuthController, :reset_post
     get "/auth/password", AuthController, :reset_apply
+    get "/auth/signout", AuthController, :signout_get
   end
 
   # Other scopes may use custom stacks.

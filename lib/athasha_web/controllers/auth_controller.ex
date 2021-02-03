@@ -92,13 +92,15 @@ defmodule AthashaWeb.AuthController do
 
     case Auth.get_confirmed_user_by_credentials(email, encrypt(password)) do
       user = %User{} ->
-        %Session{}
-        |> Map.put(:name, user.name)
-        |> Map.put(:email, user.email)
-        |> Map.put(:origin, origin(conn))
-        |> Auth.create_session!()
+        session =
+          %Session{}
+          |> Map.put(:name, user.name)
+          |> Map.put(:email, user.email)
+          |> Map.put(:origin, origin(conn))
+          |> Auth.create_session!()
 
         conn
+        |> put_session(:session_id, session.id)
         |> put_flash(:info, "Successful sign in.")
         |> redirect(to: referer(conn))
 
@@ -179,6 +181,13 @@ defmodule AthashaWeb.AuthController do
         |> put_flash(:error, "Your token has expired.")
         |> redirect(to: Routes.auth_path(conn, :signin_get))
     end
+  end
+
+  def signout_get(conn, _params) do
+    conn
+    |> delete_session(:session_id)
+    |> put_flash(:info, "Successful sign out.")
+    |> redirect(to: Routes.page_path(conn, :index))
   end
 
   defp referer(conn) do
