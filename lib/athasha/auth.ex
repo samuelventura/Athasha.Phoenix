@@ -35,8 +35,8 @@ defmodule Athasha.Auth do
     Repo.get_by(User, email: email)
   end
 
-  def get_valid_token(token, user_id) do
-    Repo.get_by(Token, token: token, user_id: user_id, done: false)
+  def get_pending_token(token, user_id) do
+    Repo.get_by(Token, token: token, user_id: user_id, expired: false)
   end
 
   def get_confirmed_user_by_credentials(email, password) do

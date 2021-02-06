@@ -7,7 +7,7 @@ defmodule Athasha.Auth.Token do
     field :token, :string
     field :origin, :string
     field :payload, :string
-    field :done, :boolean
+    field :expired, :boolean
 
     timestamps()
   end
@@ -15,7 +15,7 @@ defmodule Athasha.Auth.Token do
   @doc false
   def changeset(email, attrs) do
     email
-    |> cast(attrs, [:user_id, :token, :origin, :payload, :done])
+    |> cast(attrs, [:user_id, :token, :origin, :payload, :expired])
     |> validate_required([:user_id, :token, :origin])
     |> unique_constraint(:token)
   end

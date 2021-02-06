@@ -19,6 +19,7 @@ defmodule Athasha.Repo.Migrations.AuthSchema do
       add :name, :string
       add :email, :string
       add :origin, :string
+      add :user_id, references(:users)
 
       timestamps()
     end
@@ -36,7 +37,7 @@ defmodule Athasha.Repo.Migrations.AuthSchema do
       add :token, :string
       add :origin, :string
       add :payload, :string
-      add :done, :boolean, default: false
+      add :expired, :boolean, default: false
       add :user_id, references(:users)
 
       timestamps()

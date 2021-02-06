@@ -62,6 +62,8 @@ mix test test/athasha_web/controllers/
 mix test test/athasha_web/controllers/user_controller_test.exs
 mix test test/athasha_web/controllers/user_controller_test.exs:<line_number>
 
-MIX_ENV=test mix ecto.drop; mix ecto.create
+mix test --trace 
 
+MIX_ENV=test mix ecto.drop; mix ecto.create
+mix ecto.gen.migration tree_schema
 ```

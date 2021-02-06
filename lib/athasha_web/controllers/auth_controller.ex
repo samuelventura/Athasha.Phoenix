@@ -7,6 +7,8 @@ defmodule AthashaWeb.AuthController do
   alias Athasha.Auth.Email
   alias Athasha.Auth.Session
 
+  import Athasha.Auth.Tools
+
   def signup_get(conn, _params) do
     changeset = Auth.change_user(%User{})
     action = Routes.auth_path(conn, :signup_post)
@@ -14,12 +16,16 @@ defmodule AthashaWeb.AuthController do
   end
 
   def signup_post(conn, %{"user" => user_params}) do
-    %{"password" => password} = user_params
+    password =
+      user_params
+      |> Map.get("password", "")
+      |> encrypt_ifn_blank()
 
     user_params =
       user_params
       |> Map.put("origin", origin(conn))
-      |> Map.put("password", encrypt(password))
+      |> Map.put("password", password)
+      |> Map.put("confirmed", false)
 
     case Auth.create_user(user_params) do
       {:ok, user} ->
@@ -52,7 +58,7 @@ defmodule AthashaWeb.AuthController do
         """)
         |> redirect(to: Routes.auth_path(conn, :signin_get))
 
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {_, changeset} ->
         action = Routes.auth_path(conn, :signup_post)
 
         conn
@@ -63,12 +69,12 @@ defmodule AthashaWeb.AuthController do
 
   def signup_apply(conn, %{"id" => user_id, "token" => token}) do
     user = Auth.get_user_by_id(user_id)
-    token = Auth.get_valid_token(token, user_id)
+    token = Auth.get_pending_token(token, user_id)
 
     case [user, token] do
       [%User{}, %Token{}] ->
         Auth.update_user!(user, %{confirmed: true})
-        Auth.update_token!(token, %{done: true})
+        Auth.update_token!(token, %{expired: true})
 
         conn
         |> put_flash(:info, "Your email has been confirmed.")
@@ -89,11 +95,13 @@ defmodule AthashaWeb.AuthController do
 
   def signin_post(conn, %{"user" => user_params}) do
     %{"email" => email, "password" => password} = user_params
+    password = encrypt_ifn_blank(password)
 
-    case Auth.get_confirmed_user_by_credentials(email, encrypt(password)) do
+    case Auth.get_confirmed_user_by_credentials(email, password) do
       user = %User{} ->
         session =
           %Session{}
+          |> Map.put(:user_id, user.id)
           |> Map.put(:name, user.name)
           |> Map.put(:email, user.email)
           |> Map.put(:origin, origin(conn))
@@ -122,15 +130,17 @@ defmodule AthashaWeb.AuthController do
 
   def reset_post(conn, %{"user" => user_params}) do
     %{"email" => email, "password" => password} = user_params
+    password = encrypt_ifn_blank(password)
+    pwdlen = String.length(password)
 
-    case Auth.get_user_by_email(email) do
-      user = %User{} ->
+    case {pwdlen, Auth.get_user_by_email(email)} do
+      {64, user = %User{}} ->
         token =
           %Token{}
           |> Map.put(:user_id, user.id)
           |> Map.put(:token, Ecto.UUID.generate())
           |> Map.put(:origin, origin(conn))
-          |> Map.put(:payload, encrypt(password))
+          |> Map.put(:payload, password)
           |> Auth.create_token!()
 
         base_url = Routes.auth_url(conn, :reset_apply)
@@ -153,24 +163,32 @@ defmodule AthashaWeb.AuthController do
         """)
         |> redirect(to: Routes.auth_path(conn, :signin_get))
 
-      _ ->
+      {0, _} ->
         changeset = Auth.change_user(%User{}, user_params)
         action = Routes.auth_path(conn, :signin_post)
 
         conn
-        |> put_flash(:error, "Invalid credentials.")
+        |> put_flash(:error, "Password cannot be blank.")
+        |> render("reset.html", changeset: changeset, action: action)
+
+      {64, _} ->
+        changeset = Auth.change_user(%User{}, user_params)
+        action = Routes.auth_path(conn, :signin_post)
+
+        conn
+        |> put_flash(:error, "Email not found.")
         |> render("reset.html", changeset: changeset, action: action)
     end
   end
 
   def reset_apply(conn, %{"id" => user_id, "token" => token}) do
     user = Auth.get_user_by_id(user_id)
-    token = Auth.get_valid_token(token, user_id)
+    token = Auth.get_pending_token(token, user_id)
 
     case [user, token] do
       [%User{}, %Token{}] ->
         Auth.update_user!(user, %{confirmed: true, password: token.payload})
-        Auth.update_token!(token, %{done: true})
+        Auth.update_token!(token, %{expired: true})
 
         conn
         |> put_flash(:info, "Your password has been reset.")
@@ -221,13 +239,6 @@ defmodule AthashaWeb.AuthController do
       |> List.first()
     else
       to_string(:inet_parse.ntoa(conn.remote_ip))
-    end
-  end
-
-  defp encrypt(password) do
-    case String.trim(password) do
-      "" -> ""
-      _ -> :crypto.hash(:sha256, password) |> Base.encode16()
     end
   end
 end

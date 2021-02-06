@@ -3,6 +3,7 @@ defmodule Athasha.Auth.Session do
   import Ecto.Changeset
 
   schema "sessions" do
+    belongs_to :user, Athasha.Auth.User
     field :email, :string
     field :name, :string
     field :origin, :string
@@ -10,7 +11,6 @@ defmodule Athasha.Auth.Session do
     timestamps()
   end
 
-  @doc false
   def changeset(user, attrs) do
     user
     |> cast(attrs, [:email, :name, :origin])
