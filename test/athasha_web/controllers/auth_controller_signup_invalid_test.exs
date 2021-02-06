@@ -22,6 +22,7 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
       [] = Repo.all(User)
 
       conn = post(conn, Routes.auth_path(conn, :signup_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :signup_post)}")
       assert html_response(conn, 200) =~ "Check data validation errors."
       assert html_response(conn, 200) =~ ~s(value="some@@guy.com")
       assert html_response(conn, 200) =~ ~s(value="Some Guy")
@@ -40,6 +41,7 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
       [] = Repo.all(User)
 
       conn = post(conn, Routes.auth_path(conn, :signup_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :signup_post)}")
       assert html_response(conn, 200) =~ "Check data validation errors."
       assert html_response(conn, 200) =~ ~s(value="some@guy.com")
       assert html_response(conn, 200) =~ ~s(value="Some Guy")
@@ -69,6 +71,7 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
       }
 
       conn = post(conn, Routes.auth_path(conn, :signup_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :signup_post)}")
       assert html_response(conn, 200) =~ "Check data validation errors."
       assert html_response(conn, 200) =~ ~s(value="some@guy.com")
       assert html_response(conn, 200) =~ ~s(value="Some Other Guy")
@@ -98,8 +101,40 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
       }
 
       conn = post(conn, Routes.auth_path(conn, :signup_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :signup_post)}")
       assert html_response(conn, 200) =~ "Check data validation errors."
       assert html_response(conn, 200) =~ ~s(value="other@guy.com")
+      assert html_response(conn, 200) =~ ~s(value="Some Guy")
+      assert html_response(conn, 200) =~ ~s("user_name">Name has already been taken)
+      assert get_flash(conn, :error) == "Check data validation errors."
+      assert length(Repo.all(User)) == 1
+      assert Repo.all(Token) == []
+      assert Repo.all(Email) == []
+    end
+
+    test "signup post rejects existing name and email", %{conn: conn} do
+      %User{
+        email: "some@guy.com",
+        name: "Some Guy",
+        password: encrypt("Secret"),
+        origin: "127.0.0.1",
+        confirmed: true
+      }
+      |> create_user!()
+
+      [user] = Repo.all(User)
+
+      user_params = %{
+        email: user.email,
+        name: user.name,
+        password: "Secret"
+      }
+
+      # name check wins
+      conn = post(conn, Routes.auth_path(conn, :signup_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :signup_post)}")
+      assert html_response(conn, 200) =~ "Check data validation errors."
+      assert html_response(conn, 200) =~ ~s(value="some@guy.com")
       assert html_response(conn, 200) =~ ~s(value="Some Guy")
       assert html_response(conn, 200) =~ ~s("user_name">Name has already been taken)
       assert get_flash(conn, :error) == "Check data validation errors."

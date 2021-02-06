@@ -21,6 +21,7 @@ defmodule AthashaWeb.AuthControllerResetInvalidTest do
       [] = Repo.all(User)
 
       conn = post(conn, Routes.auth_path(conn, :reset_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :reset_post)}")
       assert html_response(conn, 200) =~ "Email not found."
       assert html_response(conn, 200) =~ ~s(value="some@guy.com")
       assert get_flash(conn, :error) == "Email not found."
@@ -44,9 +45,28 @@ defmodule AthashaWeb.AuthControllerResetInvalidTest do
       }
 
       conn = post(conn, Routes.auth_path(conn, :reset_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :reset_post)}")
       assert html_response(conn, 200) =~ "Password cannot be blank."
       assert html_response(conn, 200) =~ ~s(value="some@guy.com")
       assert get_flash(conn, :error) == "Password cannot be blank."
+      assert Repo.all(Token) == []
+      assert Repo.all(Email) == []
+    end
+
+    test "reset post rejects non existing email and blank password", %{conn: conn} do
+      user_params = %{
+        email: "some@guy.com",
+        password: " \t\n\r"
+      }
+
+      [] = Repo.all(User)
+
+      # email check wins
+      conn = post(conn, Routes.auth_path(conn, :reset_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :reset_post)}")
+      assert html_response(conn, 200) =~ "Email not found."
+      assert html_response(conn, 200) =~ ~s(value="some@guy.com")
+      assert get_flash(conn, :error) == "Email not found."
       assert Repo.all(Token) == []
       assert Repo.all(Email) == []
     end

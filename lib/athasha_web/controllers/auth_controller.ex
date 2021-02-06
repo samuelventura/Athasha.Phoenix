@@ -163,20 +163,20 @@ defmodule AthashaWeb.AuthController do
         """)
         |> redirect(to: Routes.auth_path(conn, :signin_get))
 
-      {0, _} ->
+      {_, nil} ->
         changeset = Auth.change_user(%User{}, user_params)
-        action = Routes.auth_path(conn, :signin_post)
-
-        conn
-        |> put_flash(:error, "Password cannot be blank.")
-        |> render("reset.html", changeset: changeset, action: action)
-
-      {64, _} ->
-        changeset = Auth.change_user(%User{}, user_params)
-        action = Routes.auth_path(conn, :signin_post)
+        action = Routes.auth_path(conn, :reset_post)
 
         conn
         |> put_flash(:error, "Email not found.")
+        |> render("reset.html", changeset: changeset, action: action)
+
+      {0, _} ->
+        changeset = Auth.change_user(%User{}, user_params)
+        action = Routes.auth_path(conn, :reset_post)
+
+        conn
+        |> put_flash(:error, "Password cannot be blank.")
         |> render("reset.html", changeset: changeset, action: action)
     end
   end

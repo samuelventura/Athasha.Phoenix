@@ -19,6 +19,7 @@ defmodule AthashaWeb.AuthControllerSigninInvalidTest do
       [] = Repo.all(User)
 
       conn = post(conn, Routes.auth_path(conn, :signin_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :signin_post)}")
       assert html_response(conn, 200) =~ "Invalid credentials."
       assert html_response(conn, 200) =~ ~s(value="some@guy.com")
       assert get_flash(conn, :error) == "Invalid credentials."
@@ -43,6 +44,7 @@ defmodule AthashaWeb.AuthControllerSigninInvalidTest do
       }
 
       conn = post(conn, Routes.auth_path(conn, :signin_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :signin_post)}")
       assert html_response(conn, 200) =~ "Invalid credentials."
       assert html_response(conn, 200) =~ ~s(value="some@guy.com")
       assert get_flash(conn, :error) == "Invalid credentials."
@@ -67,6 +69,7 @@ defmodule AthashaWeb.AuthControllerSigninInvalidTest do
       }
 
       conn = post(conn, Routes.auth_path(conn, :signin_post), user: user_params)
+      assert html_response(conn, 200) =~ ~s(action="#{Routes.auth_path(conn, :signin_post)}")
       assert html_response(conn, 200) =~ "Invalid credentials."
       assert html_response(conn, 200) =~ ~s(value="some@guy.com")
       assert get_flash(conn, :error) == "Invalid credentials."
