@@ -7,7 +7,6 @@ defmodule AthashaWeb.AuthControllerSigninValidTest do
   alias Athasha.Auth.Session
 
   import Athasha.Auth.Tools
-  import Athasha.Auth.TestTools
 
   describe "auth controller signin valid input - " do
     test "signin get renders form", %{conn: conn} do
@@ -24,7 +23,7 @@ defmodule AthashaWeb.AuthControllerSigninValidTest do
           origin: "127.0.0.1",
           confirmed: true
         }
-        |> create_user!()
+        |> Repo.insert!()
 
       user_params = %{
         email: "some@guy.com",

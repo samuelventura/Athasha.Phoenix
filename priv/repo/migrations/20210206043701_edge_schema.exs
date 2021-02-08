@@ -4,26 +4,23 @@ defmodule Athasha.Repo.Migrations.EdgeSchema do
   def change do
     create table(:nodes) do
       add :user_id, references(:users)
-      add :uuid, :string
+      add :version, :integer
       add :name, :string
-      add :disabled, :boolean, default: false
+      add :disabled, :boolean
 
       timestamps()
     end
-
-    create unique_index(:nodes, [:uuid])
 
     create table(:ports) do
       add :node_id, references(:nodes)
-      add :uuid, :string
+      add :version, :integer
       add :name, :string
+      add :disabled, :boolean
       add :script, :text
       add :config, :text
-      add :disabled, :boolean, default: false
 
       timestamps()
     end
 
-    create unique_index(:ports, [:uuid])
   end
 end

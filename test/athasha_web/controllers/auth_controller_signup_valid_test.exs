@@ -3,13 +3,11 @@ defmodule AthashaWeb.AuthControllerSignupValidTest do
 
   alias Athasha.Repo
 
-  alias Athasha.Auth
   alias Athasha.Auth.User
   alias Athasha.Auth.Token
   alias Athasha.Auth.Email
 
   import Athasha.Auth.Tools
-  import Athasha.Auth.TestTools
 
   describe "auth controller signup valid input - " do
     test "signup get renders form", %{conn: conn} do
@@ -59,7 +57,7 @@ defmodule AthashaWeb.AuthControllerSignupValidTest do
           origin: "127.0.0.1",
           confirmed: false
         }
-        |> create_user!()
+        |> Repo.insert!()
 
       token =
         %Token{
@@ -67,7 +65,7 @@ defmodule AthashaWeb.AuthControllerSignupValidTest do
           token: "SomeToken",
           user_id: user.id
         }
-        |> Auth.create_token!()
+        |> Repo.insert!()
 
       conn = get(conn, Routes.auth_path(conn, :signup_apply, id: user.id, token: token.token))
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)

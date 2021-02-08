@@ -3,13 +3,11 @@ defmodule AthashaWeb.AuthControllerSignupTamperTest do
 
   alias Athasha.Repo
 
-  alias Athasha.Auth
   alias Athasha.Auth.User
   alias Athasha.Auth.Token
   alias Athasha.Auth.Email
 
   import Athasha.Auth.Tools
-  import Athasha.Auth.TestTools
 
   describe "auth controller signup tampered input - " do
     test "signup post rejects missing name", %{conn: conn} do
@@ -102,7 +100,7 @@ defmodule AthashaWeb.AuthControllerSignupTamperTest do
           origin: "127.0.0.1",
           confirmed: false
         }
-        |> create_user!()
+        |> Repo.insert!()
 
       token =
         %Token{
@@ -112,7 +110,7 @@ defmodule AthashaWeb.AuthControllerSignupTamperTest do
           user_id: user.id,
           expired: true
         }
-        |> Auth.create_token!()
+        |> Repo.insert!()
 
       conn = get(conn, Routes.auth_path(conn, :signup_apply, id: 0, token: token.token))
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)
@@ -132,7 +130,7 @@ defmodule AthashaWeb.AuthControllerSignupTamperTest do
           origin: "127.0.0.1",
           confirmed: false
         }
-        |> create_user!()
+        |> Repo.insert!()
 
       conn = get(conn, Routes.auth_path(conn, :signup_apply, id: user.id, token: "SomeToken"))
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)

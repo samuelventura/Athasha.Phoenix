@@ -1,7 +1,7 @@
-defmodule Athasha.AuthTest do
+defmodule Athasha.Auth.DaoTest do
   use Athasha.DataCase
 
-  alias Athasha.Auth
+  alias Athasha.Auth.Dao
 
   import Athasha.Auth.Tools
 
@@ -17,7 +17,7 @@ defmodule Athasha.AuthTest do
         confirmed: true
       }
 
-      assert {:ok, %User{} = user} = Auth.create_user(user)
+      assert {:ok, %User{} = user} = Dao.create_user(user)
       assert user.email == "some@guy.com"
       assert user.name == "Some Guy"
       assert user.password == encrypt("Secret")

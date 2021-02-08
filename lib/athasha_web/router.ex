@@ -20,7 +20,7 @@ defmodule AthashaWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-  end 
+  end
 
   scope "/", AthashaWeb do
     pipe_through :browser
@@ -40,7 +40,6 @@ defmodule AthashaWeb.Router do
     pipe_through :livepipe
 
     live "/", PageLive, :index
-    live "/edge", EdgeLive, :index
   end
 
   # Other scopes may use custom stacks.

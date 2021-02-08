@@ -1,7 +1,8 @@
 defmodule AthashaWeb.AuthController do
   use AthashaWeb, :controller
 
-  alias Athasha.Auth
+  alias Athasha.Auth.Dao
+
   alias Athasha.Auth.User
   alias Athasha.Auth.Token
   alias Athasha.Auth.Email
@@ -10,7 +11,7 @@ defmodule AthashaWeb.AuthController do
   import Athasha.Auth.Tools
 
   def signup_get(conn, _params) do
-    changeset = Auth.change_user(%User{})
+    changeset = Dao.change_user(%User{})
     action = Routes.auth_path(conn, :signup_post)
     render(conn, "signup.html", changeset: changeset, action: action)
   end
@@ -27,14 +28,14 @@ defmodule AthashaWeb.AuthController do
       |> Map.put("password", password)
       |> Map.put("confirmed", false)
 
-    case Auth.create_user(user_params) do
+    case Dao.create_user(user_params) do
       {:ok, user} ->
         token =
           %Token{}
           |> Map.put(:user_id, user.id)
           |> Map.put(:token, Ecto.UUID.generate())
           |> Map.put(:origin, user.origin)
-          |> Auth.create_token!()
+          |> Dao.create_token!()
 
         base_url = Routes.auth_url(conn, :signup_apply)
         confirm_url = "#{base_url}?id=#{token.user_id}&token=#{token.token}"
@@ -46,7 +47,7 @@ defmodule AthashaWeb.AuthController do
         <b>Follow link below to complete sign up</b>
         <p><a href="#{confirm_url}">Confirm your email to complete sign up</a></p>
         """)
-        |> Auth.create_email!()
+        |> Dao.create_email!()
 
         # should not redirect to referer because referer
         # most likely will redirect back to signin
@@ -68,13 +69,13 @@ defmodule AthashaWeb.AuthController do
   end
 
   def signup_apply(conn, %{"id" => user_id, "token" => token}) do
-    user = Auth.get_user_by_id(user_id)
-    token = Auth.get_pending_token(token, user_id)
+    user = Dao.get_user_by_id(user_id)
+    token = Dao.get_pending_token(token, user_id)
 
     case [user, token] do
       [%User{}, %Token{}] ->
-        Auth.update_user!(user, %{confirmed: true})
-        Auth.update_token!(token, %{expired: true})
+        Dao.update_user!(user, %{confirmed: true})
+        Dao.update_token!(token, %{expired: true})
 
         conn
         |> put_flash(:info, "Your email has been confirmed.")
@@ -88,7 +89,7 @@ defmodule AthashaWeb.AuthController do
   end
 
   def signin_get(conn, _params) do
-    changeset = Auth.change_user(%User{})
+    changeset = Dao.change_user(%User{})
     action = Routes.auth_path(conn, :signin_post)
     render(conn, "signin.html", changeset: changeset, action: action)
   end
@@ -97,7 +98,7 @@ defmodule AthashaWeb.AuthController do
     %{"email" => email, "password" => password} = user_params
     password = encrypt_ifn_blank(password)
 
-    case Auth.get_confirmed_user_by_credentials(email, password) do
+    case Dao.get_confirmed_user_by_credentials(email, password) do
       user = %User{} ->
         session =
           %Session{}
@@ -105,7 +106,7 @@ defmodule AthashaWeb.AuthController do
           |> Map.put(:name, user.name)
           |> Map.put(:email, user.email)
           |> Map.put(:origin, origin(conn))
-          |> Auth.create_session!()
+          |> Dao.create_session!()
 
         conn
         |> put_session(:user_id, user.id)
@@ -114,7 +115,7 @@ defmodule AthashaWeb.AuthController do
         |> redirect(to: referer(conn))
 
       _ ->
-        changeset = Auth.change_user(%User{}, user_params)
+        changeset = Dao.change_user(%User{}, user_params)
         action = Routes.auth_path(conn, :signin_post)
 
         conn
@@ -132,7 +133,7 @@ defmodule AthashaWeb.AuthController do
   end
 
   def reset_get(conn, _params) do
-    changeset = Auth.change_user(%User{})
+    changeset = Dao.change_user(%User{})
     action = Routes.auth_path(conn, :reset_post)
     render(conn, "reset.html", changeset: changeset, action: action)
   end
@@ -142,7 +143,7 @@ defmodule AthashaWeb.AuthController do
     password = encrypt_ifn_blank(password)
     pwdlen = String.length(password)
 
-    case {pwdlen, Auth.get_user_by_email(email)} do
+    case {pwdlen, Dao.get_user_by_email(email)} do
       {64, user = %User{}} ->
         token =
           %Token{}
@@ -150,7 +151,7 @@ defmodule AthashaWeb.AuthController do
           |> Map.put(:token, Ecto.UUID.generate())
           |> Map.put(:origin, origin(conn))
           |> Map.put(:payload, password)
-          |> Auth.create_token!()
+          |> Dao.create_token!()
 
         base_url = Routes.auth_url(conn, :reset_apply)
         confirm_url = "#{base_url}?id=#{token.user_id}&token=#{token.token}"
@@ -162,7 +163,7 @@ defmodule AthashaWeb.AuthController do
         <b>Follow link below to complete password reset</b>
         <p><a href="#{confirm_url}">Confirm your password reset request</a></p>
         """)
-        |> Auth.create_email!()
+        |> Dao.create_email!()
 
         conn
         |> put_flash(:info, """
@@ -173,7 +174,7 @@ defmodule AthashaWeb.AuthController do
         |> redirect(to: Routes.auth_path(conn, :signin_get))
 
       {_, nil} ->
-        changeset = Auth.change_user(%User{}, user_params)
+        changeset = Dao.change_user(%User{}, user_params)
         action = Routes.auth_path(conn, :reset_post)
 
         conn
@@ -181,7 +182,7 @@ defmodule AthashaWeb.AuthController do
         |> render("reset.html", changeset: changeset, action: action)
 
       {0, _} ->
-        changeset = Auth.change_user(%User{}, user_params)
+        changeset = Dao.change_user(%User{}, user_params)
         action = Routes.auth_path(conn, :reset_post)
 
         conn
@@ -191,13 +192,13 @@ defmodule AthashaWeb.AuthController do
   end
 
   def reset_apply(conn, %{"id" => user_id, "token" => token}) do
-    user = Auth.get_user_by_id(user_id)
-    token = Auth.get_pending_token(token, user_id)
+    user = Dao.get_user_by_id(user_id)
+    token = Dao.get_pending_token(token, user_id)
 
     case [user, token] do
       [%User{}, %Token{}] ->
-        Auth.update_user!(user, %{confirmed: true, password: token.payload})
-        Auth.update_token!(token, %{expired: true})
+        Dao.update_user!(user, %{confirmed: true, password: token.payload})
+        Dao.update_token!(token, %{expired: true})
 
         conn
         |> put_flash(:info, "Your password has been reset.")

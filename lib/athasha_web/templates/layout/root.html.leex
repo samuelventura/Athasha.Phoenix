@@ -16,7 +16,6 @@
           <ul>
             <%= if Plug.Conn.get_session(@conn, :session_id) do %>
             <li><%= link "Sign out", to: Routes.auth_path(@conn, :signout_get) %></li>
-            <li><%= link "Edge", to: Routes.edge_path(@conn, :index) %></li>
             <% else %>
             <li><%= link "Sign in", to: Routes.auth_path(@conn, :signin_get) %></li>
             <li><%= link "Sign up", to: Routes.auth_path(@conn, :signup_get) %></li>

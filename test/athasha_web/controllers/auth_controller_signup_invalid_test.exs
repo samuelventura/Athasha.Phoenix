@@ -3,13 +3,11 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
 
   alias Athasha.Repo
 
-  alias Athasha.Auth
   alias Athasha.Auth.User
   alias Athasha.Auth.Token
   alias Athasha.Auth.Email
 
   import Athasha.Auth.Tools
-  import Athasha.Auth.TestTools
 
   describe "auth controller signup invalid input - " do
     test "signup post rejects misformatted email", %{conn: conn} do
@@ -60,7 +58,7 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
         origin: "127.0.0.1",
         confirmed: true
       }
-      |> create_user!()
+      |> Repo.insert!()
 
       [user] = Repo.all(User)
 
@@ -90,7 +88,7 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
         origin: "127.0.0.1",
         confirmed: true
       }
-      |> create_user!()
+      |> Repo.insert!()
 
       [user] = Repo.all(User)
 
@@ -120,7 +118,7 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
         origin: "127.0.0.1",
         confirmed: true
       }
-      |> create_user!()
+      |> Repo.insert!()
 
       [user] = Repo.all(User)
 
@@ -151,7 +149,7 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
         origin: "127.0.0.1",
         confirmed: false
       }
-      |> create_user!()
+      |> Repo.insert!()
 
       [user] = Repo.all(User)
 
@@ -162,7 +160,7 @@ defmodule AthashaWeb.AuthControllerSignupInvalidTest do
           user_id: user.id,
           expired: true
         }
-        |> Auth.create_token!()
+        |> Repo.insert!()
 
       conn = get(conn, Routes.auth_path(conn, :signup_apply, id: user.id, token: token.token))
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)

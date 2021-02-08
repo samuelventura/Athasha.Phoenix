@@ -2,9 +2,11 @@ defmodule Athasha.Edge.Port do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @name_length 32
+
   schema "ports" do
     belongs_to :node, Athasha.Edge.Node
-    field :uuid, :string
+    field :version, :integer
     field :name, :string
     field :script, :string
     field :config, :string
@@ -12,10 +14,10 @@ defmodule Athasha.Edge.Port do
     timestamps()
   end
 
-  @doc false
-  def changeset(controller, attrs) do
-    controller
-    |> cast(attrs, [:uuid, :name, :script, :config, :disabled])
-    |> validate_required([:uuid, :name, :script, :config, :disabled])
+  def changeset(port, params) do
+    port
+    |> cast(params, [:version, :name, :script, :config, :disabled])
+    |> validate_required([:version, :name, :script, :config, :disabled])
+    |> validate_length(:name, max: @name_length)
   end
 end

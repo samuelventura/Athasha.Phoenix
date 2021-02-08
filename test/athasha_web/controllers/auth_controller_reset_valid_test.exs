@@ -3,13 +3,11 @@ defmodule AthashaWeb.AuthControllerResetValidTest do
 
   alias Athasha.Repo
 
-  alias Athasha.Auth
   alias Athasha.Auth.User
   alias Athasha.Auth.Token
   alias Athasha.Auth.Email
 
   import Athasha.Auth.Tools
-  import Athasha.Auth.TestTools
 
   describe "auth controller reset valid input - " do
     test "reset get renders form", %{conn: conn} do
@@ -26,7 +24,7 @@ defmodule AthashaWeb.AuthControllerResetValidTest do
           origin: "127.0.0.1",
           confirmed: true
         }
-        |> create_user!()
+        |> Repo.insert!()
 
       user_params = %{
         email: "some@guy.com",
@@ -61,7 +59,7 @@ defmodule AthashaWeb.AuthControllerResetValidTest do
           origin: "127.0.0.1",
           confirmed: false
         }
-        |> create_user!()
+        |> Repo.insert!()
 
       token =
         %Token{
@@ -70,7 +68,7 @@ defmodule AthashaWeb.AuthControllerResetValidTest do
           payload: encrypt("OtherSecret"),
           user_id: user.id
         }
-        |> Auth.create_token!()
+        |> Repo.insert!()
 
       conn = get(conn, Routes.auth_path(conn, :reset_apply, id: user.id, token: token.token))
       assert redirected_to(conn) == Routes.auth_path(conn, :signin_get)

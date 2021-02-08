@@ -7,7 +7,6 @@ defmodule AthashaWeb.AuthControllerSigninInvalidTest do
   alias Athasha.Auth.Session
 
   import Athasha.Auth.Tools
-  import Athasha.Auth.TestTools
 
   describe "auth controller signin invalid input - " do
     test "signin post rejects non existing email", %{conn: conn} do
@@ -34,7 +33,7 @@ defmodule AthashaWeb.AuthControllerSigninInvalidTest do
         origin: "127.0.0.1",
         confirmed: false
       }
-      |> create_user!()
+      |> Repo.insert!()
 
       [user] = Repo.all(User)
 
@@ -59,7 +58,7 @@ defmodule AthashaWeb.AuthControllerSigninInvalidTest do
         origin: "127.0.0.1",
         confirmed: true
       }
-      |> create_user!()
+      |> Repo.insert!()
 
       [user] = Repo.all(User)
 

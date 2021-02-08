@@ -1,5 +1,4 @@
-defmodule Athasha.Auth do
-  
+defmodule Athasha.Auth.Dao do
   import Ecto.Query, warn: false
   alias Athasha.Repo
 

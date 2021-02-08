@@ -39,6 +39,7 @@ mix ecto.create
 #change port 8888 at dev.exs
 mix phx.server
 iex -S mix phx.server
+iex -S mix
 
 #after cloning in different machine
 mix deps.get
