@@ -4,6 +4,14 @@ defmodule AthashaWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
+    plug :fetch_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
+  pipeline :livepipe do
+    plug :accepts, ["html"]
+    plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, {AthashaWeb.LayoutView, :root}
     plug :protect_from_forgery
@@ -12,12 +20,10 @@ defmodule AthashaWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-  end
+  end 
 
   scope "/", AthashaWeb do
     pipe_through :browser
-
-    live "/", PageLive, :index
 
     get "/auth/signup", AuthController, :signup_get
     post "/auth/signup", AuthController, :signup_post
@@ -28,6 +34,13 @@ defmodule AthashaWeb.Router do
     post "/auth/reset", AuthController, :reset_post
     get "/auth/password", AuthController, :reset_apply
     get "/auth/signout", AuthController, :signout_get
+  end
+
+  scope "/", AthashaWeb do
+    pipe_through :livepipe
+
+    live "/", PageLive, :index
+    live "/edge", EdgeLive, :index
   end
 
   # Other scopes may use custom stacks.

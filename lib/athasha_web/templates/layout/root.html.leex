@@ -5,9 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <%= csrf_meta_tag() %>
-    <%= live_title_tag assigns[:page_title] || "Athasha", suffix: " · Phoenix Framework" %>
+    <%= live_title_tag assigns[:page_title] || "No Name", suffix: " · Athasha" %>
     <link phx-track-static rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
-    <script defer phx-track-static type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
+    <script defer phx-track-static type="text/javascript" src="<%= Routes.static_path(@conn, "/js/live.js") %>"></script>
   </head>
   <body>
     <header>
@@ -16,6 +16,7 @@
           <ul>
             <%= if Plug.Conn.get_session(@conn, :session_id) do %>
             <li><%= link "Sign out", to: Routes.auth_path(@conn, :signout_get) %></li>
+            <li><%= link "Edge", to: Routes.edge_path(@conn, :index) %></li>
             <% else %>
             <li><%= link "Sign in", to: Routes.auth_path(@conn, :signin_get) %></li>
             <li><%= link "Sign up", to: Routes.auth_path(@conn, :signup_get) %></li>

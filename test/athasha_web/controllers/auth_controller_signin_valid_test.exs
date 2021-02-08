@@ -41,6 +41,7 @@ defmodule AthashaWeb.AuthControllerSigninValidTest do
       assert session.origin == "127.0.0.1"
       assert session.user_id == user.id
       assert get_session(conn, :session_id) == session.id
+      assert get_session(conn, :user_id) == session.user_id
     end
 
     test "signout get clears session", %{conn: conn} do

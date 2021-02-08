@@ -45,8 +45,9 @@ mix deps.get
 mix ecto.create
 cd assets; npm install; cd ..
 mix phx.server
+#in Windows its asks to run it in admin cmd at least once to enable symlinks
 
-#vscode plugin
+#vscode plugin (deletes content on compilation failure, still valuable)
 https://github.com/elixir-lsp/vscode-elixir-ls
 
 #generate Auth context
@@ -64,6 +65,18 @@ mix test test/athasha_web/controllers/user_controller_test.exs:<line_number>
 
 mix test --trace 
 
-MIX_ENV=test mix ecto.drop; mix ecto.create
+MIX_ENV=test mix ecto.drop
+MIX_ENV=test mix ecto.create
+MIX_ENV=test mix ecto.migrate
+
 mix ecto.gen.migration tree_schema
+
+#backup following .gitignore specs
+rsync -av --filter=':- .gitignore' Athasha.Phoenix test.yeico.com:
+
+@session_id vs assigns[:session_id]
+
+"files.associations": {
+    "*.html.leex": "html-eex"
+}
 ```

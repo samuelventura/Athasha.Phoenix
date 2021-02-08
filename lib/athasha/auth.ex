@@ -1,8 +1,5 @@
 defmodule Athasha.Auth do
-  @moduledoc """
-  The Auth context.
-  """
-
+  
   import Ecto.Query, warn: false
   alias Athasha.Repo
 

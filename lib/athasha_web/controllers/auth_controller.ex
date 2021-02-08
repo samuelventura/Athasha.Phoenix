@@ -108,6 +108,7 @@ defmodule AthashaWeb.AuthController do
           |> Auth.create_session!()
 
         conn
+        |> put_session(:user_id, user.id)
         |> put_session(:session_id, session.id)
         |> put_flash(:info, "Successful sign in.")
         |> redirect(to: referer(conn))
@@ -120,6 +121,14 @@ defmodule AthashaWeb.AuthController do
         |> put_flash(:error, "Invalid credentials.")
         |> render("signin.html", changeset: changeset, action: action)
     end
+  end
+
+  def signout_get(conn, _params) do
+    conn
+    |> delete_session(:user_id)
+    |> delete_session(:session_id)
+    |> put_flash(:info, "Successful sign out.")
+    |> redirect(to: Routes.page_path(conn, :index))
   end
 
   def reset_get(conn, _params) do
@@ -199,13 +208,6 @@ defmodule AthashaWeb.AuthController do
         |> put_flash(:error, "Your token has expired.")
         |> redirect(to: Routes.auth_path(conn, :signin_get))
     end
-  end
-
-  def signout_get(conn, _params) do
-    conn
-    |> delete_session(:session_id)
-    |> put_flash(:info, "Successful sign out.")
-    |> redirect(to: Routes.page_path(conn, :index))
   end
 
   defp referer(conn) do
