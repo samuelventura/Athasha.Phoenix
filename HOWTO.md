@@ -40,6 +40,7 @@ mix ecto.create
 mix phx.server
 iex -S mix phx.server
 iex -S mix
+IEx.Helpers.recompile()
 
 #after cloning in different machine
 mix deps.get

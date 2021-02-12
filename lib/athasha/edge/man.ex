@@ -1,14 +1,14 @@
 defmodule Athasha.Edge.Man do
   use GenServer
 
-  alias Athasha.Edge.User
+  alias Athasha.Edge.State
 
   def start_link() do
     GenServer.start_link(__MODULE__, nil, name: :edge_man)
   end
 
-  def get_user(user_id) do
-    GenServer.call(:edge_man, {:get_user, user_id})
+  def get_pid(user_id) do
+    GenServer.call(:edge_man, {:get_pid, user_id})
   end
 
   @impl true
@@ -24,7 +24,7 @@ defmodule Athasha.Edge.Man do
   end
 
   @impl true
-  def handle_call({:get_user, user_id}, _from, map) do
+  def handle_call({:get_pid, user_id}, _from, map) do
     {map, pid} = get_pid(map, user_id)
     {:reply, pid, map}
   end
@@ -32,7 +32,7 @@ defmodule Athasha.Edge.Man do
   defp get_pid(map, user_id) do
     case Map.get(map, user_id) do
       nil ->
-        {:ok, pid} = User.start_link(user_id)
+        {:ok, pid} = State.start_link(user_id)
 
         map =
           map

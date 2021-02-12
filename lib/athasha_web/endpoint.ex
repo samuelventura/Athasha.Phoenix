@@ -10,7 +10,7 @@ defmodule AthashaWeb.Endpoint do
     signing_salt: "/l1k01b8"
   ]
 
-  socket "/socket", AthashaWeb.UserSocket,
+  socket "/edge", AthashaWeb.EdgeSocket,
     websocket: true,
     longpoll: false
 

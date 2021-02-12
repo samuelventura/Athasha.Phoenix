@@ -21,42 +21,45 @@ defmodule Athasha.Edge.Dao do
 
     %User{}
     |> User.changeset(params)
-    |> Repo.insert!()
+    |> Repo.insert()
   end
 
-  def new_node(user_id, name \\ "Unnamed node") do
+  def create_node(user_id, name \\ "Unnamed node") do
     params = %{name: name, version: 1, disabled: false}
     node = %Node{user_id: user_id}
 
-    n =
-      Node.changeset(node, params)
-      |> Repo.insert!()
-
-    {n.id, n.version, n.name, n.disabled}
+    Node.changeset(node, params)
+    |> Repo.insert()
   end
 
-  def new_port(node_id, name \\ "Unnamed port") do
+  def remove_node(node_id) do
+    from(n in Node, where: n.id == ^node_id)
+    |> Repo.delete_all()
+  end
+
+  def create_port(node_id, name \\ "Unnamed port") do
     params = %{name: name, version: 1, disabled: false, script: "{}", config: "{}"}
     port = %Port{node_id: node_id}
 
-    p =
-      Port.changeset(port, params)
-      |> Repo.insert!()
+    Port.changeset(port, params)
+    |> Repo.insert()
+  end
 
-    {p.id, p.version, p.name, p.disabled, p.script, p.config}
+  def remove_port(port_id) do
+    from(p in Port, where: p.id == ^port_id)
+    |> Repo.delete_all()
   end
 
   def list_nodes(user_id) do
-    query =
-      from n in "nodes",
-        join: p in "ports",
-        on: n.id == p.node_id,
-        where: n.user_id == ^user_id,
-        select: {
-          {n.id, n.version, n.name, n.disabled},
-          {p.id, p.version, p.name, p.disabled, p.script, p.config}
-        }
+    Node
+    |> where([n], n.user_id == ^user_id)
+    |> Repo.all()
+  end
 
-    Repo.all(query)
+  def list_ports(user_id) do
+    Port
+    |> join(:left, [p], n in Node, on: p.node_id == n.id)
+    |> where([p, n], n.user_id == ^user_id)
+    |> Repo.all()
   end
 end

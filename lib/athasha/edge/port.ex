@@ -5,7 +5,7 @@ defmodule Athasha.Edge.Port do
   @name_length 32
 
   schema "ports" do
-    belongs_to :node, Athasha.Edge.Node
+    field :node_id, :integer
     field :version, :integer
     field :name, :string
     field :script, :string
@@ -16,8 +16,8 @@ defmodule Athasha.Edge.Port do
 
   def changeset(port, params) do
     port
-    |> cast(params, [:version, :name, :script, :config, :disabled])
-    |> validate_required([:version, :name, :script, :config, :disabled])
+    |> cast(params, [:user_id, :version, :name, :script, :config, :disabled])
+    |> validate_required([:user_id, :version, :name, :script, :config, :disabled])
     |> validate_length(:name, max: @name_length)
   end
 end
