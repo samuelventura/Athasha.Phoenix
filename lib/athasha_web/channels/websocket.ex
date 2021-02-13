@@ -130,8 +130,8 @@ defmodule AthashaWeb.WebSocket do
     end
   end
 
-  def __info__(message, %{handler: handler} = socket) do
-    case handler.on_info(message, socket) do
+  def __info__(msg, %{handler: handler} = socket) do
+    case handler.on_info(msg, socket) do
       {:push, msg, socket} ->
         payload = Phoenix.json_library().encode_to_iodata!(msg)
         {:push, {:text, payload}, socket}
@@ -141,17 +141,10 @@ defmodule AthashaWeb.WebSocket do
     end
   end
 
-  def __control__({payload, _opts}, %{handler: handler} = socket) do
+  def __control__({payload, [opcode: opcode]}, %{handler: handler} = socket) do
     case function_exported?(handler, :on_control, 2) do
       true ->
-        case handler.on_control(payload, socket) do
-          {:replay, status, msg, socket} ->
-            payload = Phoenix.json_library().encode_to_iodata!(msg)
-            {:replay, status, {:text, payload}, socket}
-
-          other ->
-            other
-        end
+        handler.on_control({opcode, payload}, socket)
 
       false ->
         {:ok, socket}
